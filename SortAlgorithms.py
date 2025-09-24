@@ -1,3 +1,14 @@
+#This program implements various sorting algorithms and compares their efficiency based on 
+#excution time using various data size sets.
+
+
+#Bubble Sort Algorithm (Nate Hazeslip)
+
+
+#Quick Sort Algorithm (Nate Hazeslip)
+
+
+#Merge Sort Algorithm (Kaden Hyde)
 # Recursive function designed to split the inputted array in half until that can no longer be done
 # Then merge those two arrays in numerical order
 def mergeSort(array, first, last):
@@ -57,16 +68,23 @@ def merge(array, first, middle, last):
         j += 1
         k += 1
 
-# Everything from here down was testing to make sure I got it working, feel free to remove later
-testArray = [12, 1, 14, 27, 100]
-n = len(testArray)
+#Alternate Sorting Algorithm (Seth Wojcik)
 
-print("The given array is:")
-for i in range(n):
-    print("%d" % testArray[i], end = " ")
+
+
+#Main Function to test and run algorithms to compare efficiency
+def main():
+    testArray = [12, 1, 14, 27, 100]
+    n = len(testArray)
+
+    print("The given array is:")
+    for i in range(n):
+        print("%d" % testArray[i], end = " ")
     
-mergeSort(testArray, 0, n - 1)
+    mergeSort(testArray, 0, n - 1)
 
-print("\n\nThe sorted array is:")
-for i in range(n):
-    print("%d" % testArray[i], end = " ")
+    print("\n\nThe sorted array is:")
+    for i in range(n):
+        print("%d" % testArray[i], end = " ")
+
+main()
