@@ -1,12 +1,43 @@
 #This program implements various sorting algorithms and compares their efficiency based on 
 #excution time using various data size sets.
+import time
+import random
+import sys
+from typing import List, Callable
 
+# Increase recursion limit for quicksort with large arrays
+sys.setrecursionlimit(10000)
 
 #Bubble Sort Algorithm (Nate Hazeslip)
-
+def bubble_sort(arr: List[int]) -> List[int]:
+        """Bubble sort implementation with optimization"""
+        n = len(arr)
+        for i in range(n):
+            swapped = False
+            for j in range(0, n-i-1):
+                if arr[j] > arr[j+1]:
+                    arr[j], arr[j+1] = arr[j+1], arr[j]
+                    swapped = True
+            # If no swapping occurred, array is already sorted
+            if not swapped:
+                break
+        return arr
 
 #Quick Sort Algorithm (Nate Hazeslip)
-
+def quick_sort(arr: List[int]) -> List[int]:
+        """Quick sort implementation using median-of-three partitioning"""
+        if len(arr) <= 1:
+            return arr
+        
+        # Median-of-three pivot selection
+        first, middle, last = arr[0], arr[len(arr)//2], arr[-1]
+        pivot = sorted([first, middle, last])[1]
+        
+        left = [x for x in arr if x < pivot]
+        middle = [x for x in arr if x == pivot]
+        right = [x for x in arr if x > pivot]
+        
+        return quick_sort(left) + middle + quick_sort(right)
 
 #Merge Sort Algorithm (Kaden Hyde)
 # Recursive function designed to split the inputted array in half until that can no longer be done
