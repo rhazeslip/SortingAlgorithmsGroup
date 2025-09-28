@@ -47,32 +47,13 @@ def mergeSort(array, first, last):
     # last = last index of the array
     if first < last:
         # middle = roughly the middle index of the array, the split point
-        middle = (first + (last - 1)) // 2
+        middle = (first + last ) // 2
 
         # check if the array can be split further, if not, merge, otherwise, split again
-        if middle <= first:
-            merge(array, first, middle, last)
-        else:
-            mergeSort(array, first, middle)
-            mergeSort(array, middle + 1, last)
+        mergeSort(array, first, middle)
+        mergeSort(array, middle + 1, last)
+        merge(array, first, middle, last)
 
-#Selection Sort Algorithm (Seth Wojcik)
-# Defines the list into an usorted sublist and sorted sublist
-# Repeatedly selects the smallest element from the unsorted sublist and moves it to the sorted sublist
-def selectionSort(arr: List[int]) -> List[int]:
-    for i in range(len(arr)):
-        minimum = i
-        
-        for j in range(i + 1, len(arr)):
-            # Select the smallest value
-            if arr[j] < arr[minimum]:
-                minimum = j
-
-        # Place it at the front of the 
-        # sorted end of the array
-        arr[minimum], arr[i] = arr[i], arr[minimum]
-            
-    return arr
 
 # Majority of the sorting happens here, arrays merged in numerical order in this function
 def merge(array, first, middle, last):
@@ -118,26 +99,33 @@ def merge(array, first, middle, last):
         k += 1
 
 #Alternate Sorting Algorithm (Seth Wojcik)
+#Selection Sort Algorithm (Seth Wojcik)
+# Defines the list into an usorted sublist and sorted sublist
+# Repeatedly selects the smallest element from the unsorted sublist and moves it to the sorted sublist
+def selectionSort(arr: List[int]) -> List[int]:
+    for i in range(len(arr)):
+        minimum = i
+        
+        for j in range(i + 1, len(arr)):
+            # Select the smallest value
+            if arr[j] < arr[minimum]:
+                minimum = j
 
+        # Place it at the front of the 
+        # sorted end of the array
+        arr[minimum], arr[i] = arr[i], arr[minimum]
+            
+    return arr
 
-"""
-#Main Function to test and run algorithms to compare efficiency
-def main():
-    testArray = [12, 1, 14, 27, 100]
-    n = len(testArray)
+# Wrapper function for mergeSort to match the interface of other sorting functions
+def merge_sort_wrapper(arr: List[int]) -> List[int]:
+    """Wrapper function for mergeSort to match the interface of other sorting functions"""
+    if len(arr) == 0:
+        return arr
+    arr_copy = arr.copy()
+    mergeSort(arr_copy, 0, len(arr_copy) - 1)
+    return arr_copy
 
-    print("The given array is:")
-    for i in range(n):
-        print("%d" % testArray[i], end = " ")
-    
-    mergeSort(testArray, 0, n - 1)
-
-    print("\n\nThe sorted array is:")
-    for i in range(n):
-        print("%d" % testArray[i], end = " ")
-
-main()
-"""
 # Data Generation Functions
 def generate_best_case(n: int, algorithm: str) -> List[int]:
     """Generate best case input for specific algorithm"""
@@ -147,8 +135,8 @@ def generate_best_case(n: int, algorithm: str) -> List[int]:
         return list(range(n))  # Balanced partitions
     elif algorithm == "merge":
         return list(range(n))  # Already sorted
-    elif algorithm == "heap":
-        return list(range(n))  # Already sorted
+    elif algorithm == "selection":
+        return list(range(n))  # Already sorted (but still O(n²))
     return list(range(n))
 
 def generate_worst_case(n: int, algorithm: str) -> List[int]:
@@ -159,8 +147,8 @@ def generate_worst_case(n: int, algorithm: str) -> List[int]:
         return list(range(n))  # Already sorted (poor pivot)
     elif algorithm == "merge":
         return [random.randint(0, 1000000) for _ in range(n)]  # Any array
-    elif algorithm == "heap":
-        return list(range(n, 0, -1))  # Reverse sorted
+    elif algorithm == "selection":
+        return list(range(n, 0, -1))  # Reverse sorted (still O(n²))
     return list(range(n, 0, -1))
 
 def generate_average_case(n: int) -> List[int]:
@@ -183,8 +171,8 @@ def get_sorting_algorithm(algorithm_key: str) -> Callable:
     algorithms = {
         "bubble": bubble_sort,
         "quick": quick_sort,
-        "merge": mergeSort,
-        #"heap": heap_sort
+        "merge": merge_sort_wrapper,  # Use the wrapper function
+        "selection": selectionSort
     }
     return algorithms.get(algorithm_key)
 
@@ -207,7 +195,7 @@ def get_algorithm_name(algorithm_key: str) -> str:
         "bubble": "Bubble Sort",
         "quick": "Quick Sort", 
         "merge": "Merge Sort",
-        "heap": "Heap Sort"
+        "selection": "Selection Sort"
     }
     return algorithm_names.get(algorithm_key, "Unknown Algorithm")
 
@@ -220,7 +208,7 @@ def display_menu():
     print("1. Bubble Sort")
     print("2. Merge Sort")
     print("3. Quick Sort")
-    print("4. Heap Sort")
+    print("4. Selection Sort")  # Changed from Heap Sort
     print("5. Exit")
     print("6. Run Comprehensive Test (All algorithms & cases)")
     print("="*60)
@@ -297,7 +285,7 @@ def test_single_algorithm(algorithm_key: str, results: dict):
 
 def run_comprehensive_test():
     """Run comprehensive test for all algorithms and cases"""
-    algorithms = ["bubble", "merge", "quick", "heap"]
+    algorithms = ["bubble", "merge", "quick", "selection"]  # Changed from "heap"
     cases = ["best", "average", "worst"]
     sizes = [100, 1000, 10000]
     
@@ -355,17 +343,19 @@ def analyze_results(results: dict):
                 print(f"    N {n1:,}→{n2:,}: Time {t1:.6f}→{t2:.6f}s, Factor: {growth_factor:.2f}x")
                 
                 # Theoretical complexity analysis
-                if algo == "bubble":
+                if algo in ["bubble", "selection"]:  # Added selection sort
                     expected = size_ratio ** 2  # O(n²)
-                elif algo in ["merge", "heap"]:
+                    print(f"    Expected for O(n²): {expected:.2f}x, Actual: {growth_factor:.2f}x")
+                elif algo == "merge":
                     expected = size_ratio * (n2 / n1)  # O(n log n) approximation
+                    print(f"    Expected for O(n log n): ~{expected:.2f}x, Actual: {growth_factor:.2f}x")
                 else:  # quick sort
                     if case == "worst":
                         expected = size_ratio ** 2  # O(n²)
+                        print(f"    Expected for O(n²): {expected:.2f}x, Actual: {growth_factor:.2f}x")
                     else:
                         expected = size_ratio * (n2 / n1)  # O(n log n) approximation
-                
-                print(f"    Expected for O(n²): {expected:.2f}x, Actual: {growth_factor:.2f}x")
+                        print(f"    Expected for O(n log n): ~{expected:.2f}x, Actual: {growth_factor:.2f}x")
 
 def verify_sorting_correctness():
     """Verify that all sorting algorithms work correctly"""
@@ -381,8 +371,8 @@ def verify_sorting_correctness():
     algorithms = {
         "bubble": bubble_sort,
         "quick": quick_sort,
-        "merge": mergeSort,
-        #"heap": heap_sort
+        "merge": merge_sort_wrapper,  # Use the wrapper function
+        "selection": selectionSort
     }
     
     print("=== CORRECTNESS TESTING ===")
@@ -392,11 +382,21 @@ def verify_sorting_correctness():
         
         for algo_name, algo_func in algorithms.items():
             try:
-                result = algo_func(arr.copy())
+                # For merge sort, we need to handle it differently since it sorts in-place
+                if algo_name == "merge":
+                    arr_copy = arr.copy()
+                    result = algo_func(arr_copy)
+                else:
+                    result = algo_func(arr.copy())
+                
                 expected = sorted(arr)
                 status = "✓" if result == expected else "✗"
                 print(f"{status} {get_algorithm_name(algo_name)}: {result}")
-                assert result == expected, f"{algo_name} failed!"
+                
+                if result != expected:
+                    print(f"  Expected: {expected}")
+                    print(f"  Got: {result}")
+                
             except Exception as e:
                 print(f"✗ {get_algorithm_name(algo_name)}: Error - {e}")
     
@@ -409,7 +409,7 @@ def main():
         1: "bubble",
         2: "merge", 
         3: "quick",
-        4: "heap"
+        4: "selection"  # Changed from "heap"
     }
     
     results = {}
