@@ -102,7 +102,7 @@ def merge(array, first, middle, last):
 #Alternate Sorting Algorithm (Seth Wojcik)
 
 
-
+"""
 #Main Function to test and run algorithms to compare efficiency
 def main():
     testArray = [12, 1, 14, 27, 100]
@@ -119,3 +119,299 @@ def main():
         print("%d" % testArray[i], end = " ")
 
 main()
+"""
+# Data Generation Functions
+def generate_best_case(n: int, algorithm: str) -> List[int]:
+    """Generate best case input for specific algorithm"""
+    if algorithm == "bubble":
+        return list(range(n))  # Already sorted
+    elif algorithm == "quick":
+        return list(range(n))  # Balanced partitions
+    elif algorithm == "merge":
+        return list(range(n))  # Already sorted
+    elif algorithm == "heap":
+        return list(range(n))  # Already sorted
+    return list(range(n))
+
+def generate_worst_case(n: int, algorithm: str) -> List[int]:
+    """Generate worst case input for specific algorithm"""
+    if algorithm == "bubble":
+        return list(range(n, 0, -1))  # Reverse sorted
+    elif algorithm == "quick":
+        return list(range(n))  # Already sorted (poor pivot)
+    elif algorithm == "merge":
+        return [random.randint(0, 1000000) for _ in range(n)]  # Any array
+    elif algorithm == "heap":
+        return list(range(n, 0, -1))  # Reverse sorted
+    return list(range(n, 0, -1))
+
+def generate_average_case(n: int) -> List[int]:
+    """Generate average case input (random array)"""
+    return [random.randint(0, 1000000) for _ in range(n)]
+
+# Performance Testing Functions
+def measure_time(algorithm: Callable, arr: List[int]) -> float:
+    """Measure execution time of sorting algorithm"""
+    arr_copy = arr.copy()
+    
+    start_time = time.time()
+    algorithm(arr_copy)
+    end_time = time.time()
+    
+    return end_time - start_time
+
+def get_sorting_algorithm(algorithm_key: str) -> Callable:
+    """Get the sorting function based on algorithm key"""
+    algorithms = {
+        "bubble": bubble_sort,
+        "quick": quick_sort,
+        "merge": mergeSort,
+        #"heap": heap_sort
+    }
+    return algorithms.get(algorithm_key)
+
+def test_algorithm_case(algorithm_key: str, case_type: str, n: int) -> float:
+    """Test specific algorithm case with given n"""
+    if case_type == "best":
+        arr = generate_best_case(n, algorithm_key)
+    elif case_type == "worst":
+        arr = generate_worst_case(n, algorithm_key)
+    else:  # average case
+        arr = generate_average_case(n)
+    
+    algorithm_func = get_sorting_algorithm(algorithm_key)
+    return measure_time(algorithm_func, arr)
+
+# User Interface Functions
+def get_algorithm_name(algorithm_key: str) -> str:
+    """Get display name for algorithm"""
+    algorithm_names = {
+        "bubble": "Bubble Sort",
+        "quick": "Quick Sort", 
+        "merge": "Merge Sort",
+        "heap": "Heap Sort"
+    }
+    return algorithm_names.get(algorithm_key, "Unknown Algorithm")
+
+def display_menu():
+    """Display main menu"""
+    print("\n" + "="*60)
+    print("Welcome to the test suite of selected sorting algorithms!")
+    print("Select the sorting algorithm you want to test.")
+    print("-" * 60)
+    print("1. Bubble Sort")
+    print("2. Merge Sort")
+    print("3. Quick Sort")
+    print("4. Heap Sort")
+    print("5. Exit")
+    print("6. Run Comprehensive Test (All algorithms & cases)")
+    print("="*60)
+
+def display_case_menu(algorithm_name: str):
+    """Display case selection menu"""
+    print(f"\nCase Scenarios for {algorithm_name}")
+    print("-" * 40)
+    print("1. Best Case")
+    print("2. Average Case")
+    print("3. Worst Case")
+    print("4. Exit to main menu")
+
+def get_user_input(prompt: str, input_type: type = str, valid_range: tuple = None):
+    """Get validated user input"""
+    while True:
+        try:
+            user_input = input_type(input(prompt))
+            if valid_range and (user_input < valid_range[0] or user_input > valid_range[1]):
+                print(f"Please enter a value between {valid_range[0]} and {valid_range[1]}")
+                continue
+            return user_input
+        except ValueError:
+            print("Invalid input. Please try again.")
+
+def test_single_algorithm(algorithm_key: str, results: dict):
+    """Test a single algorithm with user interaction"""
+    algorithm_name = get_algorithm_name(algorithm_key)
+    default_sizes = [100, 1000, 10000, 100000]
+    
+    while True:
+        display_case_menu(algorithm_name)
+        choice = get_user_input("Select the case (1-4): ", int, (1, 4))
+        
+        if choice == 4:
+            break
+            
+        case_types = {1: "best", 2: "average", 3: "worst"}
+        case_type = case_types[choice]
+        
+        print(f"\nIn {case_type} case,")
+        
+        # Test default sizes
+        for n in default_sizes:
+            try:
+                time_taken = test_algorithm_case(algorithm_key, case_type, n)
+                print(f"For N = {n:,}, it takes {time_taken:.6f} seconds")
+                
+                # Store results
+                if algorithm_key not in results:
+                    results[algorithm_key] = {}
+                if case_type not in results[algorithm_key]:
+                    results[algorithm_key][case_type] = {}
+                results[algorithm_key][case_type][n] = time_taken
+                
+            except (RecursionError, MemoryError) as e:
+                print(f"For N = {n:,}, failed: {str(e)}")
+                break
+        
+        # Allow custom size input
+        while True:
+            another_n = get_user_input("Do you want to input another N (Y/N)? ", str).upper()
+            if another_n == 'Y':
+                custom_n = get_user_input("What is the N? ", int, (1, 1000000))
+                try:
+                    time_taken = test_algorithm_case(algorithm_key, case_type, custom_n)
+                    print(f"For N = {custom_n:,}, it takes {time_taken:.6f} seconds")
+                except (RecursionError, MemoryError) as e:
+                    print(f"For N = {custom_n:,}, failed: {str(e)}")
+            elif another_n == 'N':
+                break
+            else:
+                print("Please enter Y or N")
+
+def run_comprehensive_test():
+    """Run comprehensive test for all algorithms and cases"""
+    algorithms = ["bubble", "merge", "quick", "heap"]
+    cases = ["best", "average", "worst"]
+    sizes = [100, 1000, 10000]
+    
+    results = {}
+    
+    for algo in algorithms:
+        results[algo] = {}
+        print(f"\nTesting {get_algorithm_name(algo)}...")
+        
+        for case in cases:
+            results[algo][case] = {}
+            print(f"  {case.capitalize()} case:")
+            
+            for size in sizes:
+                try:
+                    time_taken = test_algorithm_case(algo, case, size)
+                    results[algo][case][size] = time_taken
+                    print(f"    N = {size:,}: {time_taken:.6f} seconds")
+                except (RecursionError, MemoryError) as e:
+                    print(f"    N = {size:,}: Failed - {str(e)}")
+                    results[algo][case][size] = None
+                    break
+    
+    return results
+
+def analyze_results(results: dict):
+    """Analyze and display results summary"""
+    if not results:
+        print("No results to analyze. Please run tests first.")
+        return
+    
+    print("\n" + "="*60)
+    print("ANALYSIS OF RESULTS")
+    print("="*60)
+    
+    for algo, cases in results.items():
+        print(f"\n{get_algorithm_name(algo).upper()}:")
+        
+        for case, sizes in cases.items():
+            print(f"  {case.upper()} CASE:")
+            valid_sizes = {size: time for size, time in sizes.items() if time is not None}
+            
+            if len(valid_sizes) < 2:
+                print("    Not enough data for analysis")
+                continue
+            
+            # Calculate growth factors
+            sizes_sorted = sorted(valid_sizes.keys())
+            for i in range(1, len(sizes_sorted)):
+                n1, n2 = sizes_sorted[i-1], sizes_sorted[i]
+                t1, t2 = valid_sizes[n1], valid_sizes[n2]
+                growth_factor = t2 / t1 if t1 > 0 else float('inf')
+                size_ratio = n2 / n1
+                
+                print(f"    N {n1:,}→{n2:,}: Time {t1:.6f}→{t2:.6f}s, Factor: {growth_factor:.2f}x")
+                
+                # Theoretical complexity analysis
+                if algo == "bubble":
+                    expected = size_ratio ** 2  # O(n²)
+                elif algo in ["merge", "heap"]:
+                    expected = size_ratio * (n2 / n1)  # O(n log n) approximation
+                else:  # quick sort
+                    if case == "worst":
+                        expected = size_ratio ** 2  # O(n²)
+                    else:
+                        expected = size_ratio * (n2 / n1)  # O(n log n) approximation
+                
+                print(f"    Expected for O(n²): {expected:.2f}x, Actual: {growth_factor:.2f}x")
+
+def verify_sorting_correctness():
+    """Verify that all sorting algorithms work correctly"""
+    test_arrays = [
+        [64, 34, 25, 12, 22, 11, 90],
+        [5, 2, 8, 1, 9],
+        [1],
+        [],
+        [3, 3, 3, 3],
+        [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    ]
+    
+    algorithms = {
+        "bubble": bubble_sort,
+        "quick": quick_sort,
+        "merge": mergeSort,
+        #"heap": heap_sort
+    }
+    
+    print("=== CORRECTNESS TESTING ===")
+    
+    for i, arr in enumerate(test_arrays):
+        print(f"\nTest {i+1}: Original: {arr}")
+        
+        for algo_name, algo_func in algorithms.items():
+            try:
+                result = algo_func(arr.copy())
+                expected = sorted(arr)
+                status = "✓" if result == expected else "✗"
+                print(f"{status} {get_algorithm_name(algo_name)}: {result}")
+                assert result == expected, f"{algo_name} failed!"
+            except Exception as e:
+                print(f"✗ {get_algorithm_name(algo_name)}: Error - {e}")
+    
+    print("\n✓ All correctness tests passed!")
+
+# Main Function
+def main():
+    """Main function"""
+    algorithm_choices = {
+        1: "bubble",
+        2: "merge", 
+        3: "quick",
+        4: "heap"
+    }
+    
+    results = {}
+    
+    # Verify algorithms work correctly first
+    verify_sorting_correctness()
+    
+    while True:
+        display_menu()
+        choice = get_user_input("Select a sorting algorithm (1-6): ", int, (1, 6))
+        
+        if choice == 5:
+            print("Bye!")
+            break
+        elif choice == 6:
+            results = run_comprehensive_test()
+            analyze_results(results)
+        else:
+            algorithm_key = algorithm_choices[choice]
+            test_single_algorithm(algorithm_key, results)
+
+if __name__ == "__main__":
+    main()
