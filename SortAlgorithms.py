@@ -56,6 +56,24 @@ def mergeSort(array, first, last):
             mergeSort(array, first, middle)
             mergeSort(array, middle + 1, last)
 
+#Selection Sort Algorithm (Seth Wojcik)
+# Defines the list into an usorted sublist and sorted sublist
+# Repeatedly selects the smallest element from the unsorted sublist and moves it to the sorted sublist
+def selectionSort(arr: List[int]) -> List[int]:
+    for i in range(len(arr)):
+        minimum = i
+        
+        for j in range(i + 1, len(arr)):
+            # Select the smallest value
+            if arr[j] < arr[minimum]:
+                minimum = j
+
+        # Place it at the front of the 
+        # sorted end of the array
+        arr[minimum], arr[i] = arr[i], arr[minimum]
+            
+    return arr
+
 # Majority of the sorting happens here, arrays merged in numerical order in this function
 def merge(array, first, middle, last):
     # n1 is the length of our "left side" array
